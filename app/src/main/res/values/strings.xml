@@ -1,6 +1,6 @@
 <resources>
     <!-- Commun -->
-    <string name="app_name">Fragments</string>
+    <string name="app_name">Application Memo Kotlin</string>
 
     <!-- Main -->
     <string name="main_message_position">Clic à la position %1$d</string>

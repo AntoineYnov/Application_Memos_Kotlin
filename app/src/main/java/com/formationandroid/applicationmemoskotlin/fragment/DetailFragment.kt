@@ -24,9 +24,9 @@ class DetailFragment : Fragment() {
         super.onActivityCreated(savedInstanceState)
         if (view != null && context != null) {
             // vues :
-            val textViewMemo = view!!.findViewById<TextView>(R.id.detail_memo)
+            val textViewMemo = requireView().findViewById<TextView>(R.id.detail_memo)
             if (arguments != null) {
-                textViewMemo.text = arguments!!.getString(EXTRA_MEMO)
+                textViewMemo.text = requireArguments().getString(EXTRA_MEMO)
             }
         }
     }

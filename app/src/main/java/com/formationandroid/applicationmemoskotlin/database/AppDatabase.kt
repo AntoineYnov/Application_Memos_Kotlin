@@ -8,5 +8,5 @@ import com.formationandroid.applicationmemoskotlin.dto.MemoDTO
 
 @Database(entities = [MemoDTO::class], version = 1)
 abstract class AppDatabase : RoomDatabase() {
-    abstract fun memoDAO(): MemoDAO?
+    abstract fun memoDAO(): MemoDAO
 }

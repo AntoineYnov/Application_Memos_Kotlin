@@ -4,12 +4,13 @@ import android.content.Context
 import androidx.room.Room
 
 
-class AppDatabaseHelper private constructor(context: Context) {
-    private val database: AppDatabase
+class AppDatabaseHelper(context: Context) {
+
 
     companion object {
         // Attributs :
         private var databaseHelper: AppDatabaseHelper? = null
+        private lateinit var database: AppDatabase
 
         // Getter instance :
         @Synchronized
@@ -18,8 +19,8 @@ class AppDatabaseHelper private constructor(context: Context) {
                 databaseHelper =
                     AppDatabaseHelper(context.applicationContext)
             }
-            return databaseHelper!!.database
-        }
+            return database
+    }
     }
 
     // Constructeur :

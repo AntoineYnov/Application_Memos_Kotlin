@@ -10,7 +10,9 @@ import android.widget.EditText
 import android.widget.FrameLayout
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.ViewModelProvider
 import androidx.preference.PreferenceManager
+import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import androidx.recyclerview.widget.RecyclerView.OnItemTouchListener
@@ -19,9 +21,17 @@ import com.formationandroid.applicationmemoskotlin.adapter.MemoAdapter
 import com.formationandroid.applicationmemoskotlin.database.AppDatabaseHelper
 import com.formationandroid.applicationmemoskotlin.dto.MemoDTO
 import com.formationandroid.applicationmemoskotlin.fragment.DetailFragment
+import com.formationandroid.applicationmemoskotlin.repository.Repository
+import com.formationandroid.applicationmemoskotlin.swipe.Swiper
+import com.formationandroid.applicationmemoskotlin.viewmodels.MemoVIewModels
 
 
 class MainActivity : AppCompatActivity(), OnItemTouchListener {
+
+    // Models
+    lateinit var memoViewModel: MemoVIewModels
+    lateinit var memoList: MutableList<MemoDTO>
+
     //Vues
     private var recyclerView: RecyclerView? = null
     private var editTextMemo: EditText? = null
@@ -32,6 +42,7 @@ class MainActivity : AppCompatActivity(), OnItemTouchListener {
 
     // Gesture detector :
     private var gestureDetector: GestureDetector? = null
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
@@ -47,26 +58,32 @@ class MainActivity : AppCompatActivity(), OnItemTouchListener {
         recyclerView = findViewById(R.id.liste_memos)
         frameLayoutConteneurDetail = findViewById(R.id.conteneur_detail)
 
-        // à ajouter pour de meilleures performances :
+        memoViewModel = ViewModelProvider(this).get(MemoVIewModels::class.java)
+        memoViewModel.init(Repository())
+
         this.recyclerView = findViewById(R.id.liste_memos)
 
-        val layoutManager = LinearLayoutManager(this)
-
-        this.recyclerView?.layoutManager = layoutManager
+        // à ajouter pour de meilleures performances :
         this.recyclerView?.setHasFixedSize(true)
 
-        this.recyclerView?.addOnItemTouchListener(this)
+        val layoutManager = LinearLayoutManager(this)
+        this.recyclerView?.layoutManager = layoutManager
 
-        // contenu d'exemple :
-        val listeMemoDTO: Array<MemoDTO>? = AppDatabaseHelper.getDatabase(this).memoDAO()?.loadAllMemos()
+        // contenu :
+        memoList = memoViewModel.getMemos()!!.toMutableList()
 
 
-        // contenu d'exemple :
-        memoAdapter = MemoAdapter(listeMemoDTO?.toMutableList())
-
+        // adapter
+        memoAdapter = MemoAdapter(memoList, memoViewModel)
         this.recyclerView?.adapter = memoAdapter
 
+
         // listener :
+        this.recyclerView?.addOnItemTouchListener(this)
+
+        val itemTouchHelper = ItemTouchHelper(Swiper(memoAdapter))
+        itemTouchHelper.attachToRecyclerView(recyclerView)
+
         gestureDetector = GestureDetector(this,
             object : SimpleOnGestureListener() {
                 override fun onSingleTapUp(event: MotionEvent): Boolean {
@@ -81,14 +98,16 @@ class MainActivity : AppCompatActivity(), OnItemTouchListener {
      */
     fun onClickBoutonValider(view: View?) {
         // ajout du mémo :
-        val memoDTO = MemoDTO(editTextMemo!!.text.toString())
-        memoAdapter?.ajouterMemo(memoDTO)
-        AppDatabaseHelper.getDatabase(this).memoDAO()?.insert(memoDTO)
-        // animation de repositionnement de la liste (sinon on ne voit pas l'item ajouté) :
-        recyclerView!!.smoothScrollToPosition(0)
+        if(editTextMemo!!.text.isNotBlank()) {
+            val memoDTO = MemoDTO(editTextMemo!!.text.toString())
+            memoAdapter?.ajouterMemo(memoDTO)
+            memoViewModel.addMemo(memoDTO)
+            // animation de repositionnement de la liste (sinon on ne voit pas l'item ajouté) :
+            recyclerView!!.smoothScrollToPosition(0)
 
-        // on efface le contenu de la zone de saisie :
-        editTextMemo!!.setText("")
+            // on efface le contenu de la zone de saisie :
+            editTextMemo!!.setText("")
+        }
     }
 
     override fun onInterceptTouchEvent(

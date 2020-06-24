@@ -6,21 +6,22 @@ import com.formationandroid.applicationmemoskotlin.di.AppComponent
 import com.formationandroid.applicationmemoskotlin.di.DaggerAppComponent
 
 class DIApplication : Application() {
-    // Attributs :
-    private var instance: DIApplication? = null
-    private var appComponent: AppComponent? = null
+
+    companion object {
+        private lateinit var instance: DIApplication
+
+        fun getAppComponent(): AppComponent {
+            return instance.component
+        }
+    }
+
+    private lateinit var component: AppComponent
 
     override fun onCreate() {
-        // initialisation :
         super.onCreate()
+
         instance = this
-
-        // dagger :
-        appComponent = DaggerAppComponent.builder().application(this)?.build()
+        component = DaggerAppComponent.builder().application(this).build()
     }
 
-    // Getter singleton :
-    fun getAppComponent(): AppComponent? {
-        return instance?.appComponent
-    }
 }
